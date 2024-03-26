@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Download Images</title>
+</head>
+<body>
+    <button id="downloadImagesButton">Download2 Images</button>
+    <script>
+        const button = document.getElementById('downloadImagesButton');
+
+        button.addEventListener('click', () => {
+            parent.postMessage({ pluginMessage: { type: 'button-clicked' } }, '*');
+            button.disabled = true;
+            button.textContent = 'Processing...';
+        });
+
+        window.onmessage = (event) => {
+            const { type, imageBytes, fileName } = event.data.pluginMessage;
+            if (type === 'image-data') {
+                const arrayBuffer = new Uint8Array(imageBytes).buffer;
+                const blob = new Blob([arrayBuffer], { type: 'image/png' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            } else if (type === 'download-complete') {
+                button.disabled = false;
+                button.textContent = 'Download Images';
+            }
+        };
+    </script>
+</body>
+</html>
